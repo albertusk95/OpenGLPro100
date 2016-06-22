@@ -37,7 +37,7 @@ int windowPosX = 50;
 int windowPosY = 50;
 
 // variabel yang menyimpan jumlah masing-masing objek yang dibentuk
-int numLine, numSquare, numCircle, numOctagon;         
+int numSquare, numCircle, numOctagon;         
 
 // variabel yang menyimpan kecepatan gerak awal maksimum
 double v_max = 1;     
@@ -56,15 +56,20 @@ int fillColorSquare, fillColorCircle, fillColorOctagon, fillColorLine;
 // variabel yang menyimpan posisi hasil translasi untuk kotak pemantul
 GLfloat sqBouncerPosX = 0.0f, sqBouncerPosY = 0.0f;
 
+// variabel yang menyimpan posisi hasil translasi garis penjaga kotak abu-abu tengah
+GLfloat sqGatePosX0 = 0.0f, sqGatePosY0 = 0.0f;
+char stateGate0 = 'L', stateGate1 = 'R';
+
 // variabel yang menyimpan batas-batas daerah untuk menampilkan objek
-//GLfloat ballXMin, ballXMax, ballYMin, ballYMax;
 GLfloat circleMinPosX, circleMaxPosX, circleMinPosY, circleMaxPosY;
 GLfloat squareMinPosX, squareMaxPosX, squareMinPosY, squareMaxPosY;
 GLfloat octagonMinPosX, octagonMaxPosX, octagonMinPosY, octagonMaxPosY;
+GLfloat splitterMinPosX, splitterMaxPosX;
 
 // Current rotational angle of the shapes
 GLfloat angle = 0.0f;  
 
+GLfloat circleRadius = 0.1f;
 
 /*
 	Class: Circle
@@ -243,23 +248,6 @@ void getUserInput() {
 	}
 
 	cout << endl;
-
-	// input bagian LINE
-	cout << "[Line]" << endl;
-	cout << "Jumlah line (garis): ";
-	cin >> numLine;
-
-	if (numLine < 0) {
-		cout << "Input jumlah tidak valid. Jumlah line dibuat default: 1" << endl;
-		numLine = 1;
-	}
-
-	if (numLine > 0) {
-		cout << "Pewarnaan objek: 0. Random; 1. Tentukan sendiri --- [0/1]: ";
-		cin >> fillColorLine;
-	}
-
-	cout << endl << endl;
 
 	t = 0;
 	step_number = 0;
@@ -461,9 +449,153 @@ void step() {
 */
 void checkCollisionAct() {
 	
+	/*
+		OCTAGON COLLISION CONTROLLER
+	*/
+
+	// cek tumbukan antara octagon dengan kotak pemantul (bouncer)
+	for (int i = 0; i < numOctagon; i++) {
+		if (sqrt(pow(octagons[i]->x - sqBouncerPosX, 2) + pow(octagons[i]->y + 1.0, 2)) <= sqrt(pow(0.5, 2) + pow(0.15, 2))) {
+			// jika pantulan terjadi di bagian atas sisi kiri
+			if (octagons[i]->x < sqBouncerPosX) {
+				octagons[i]->vx = -abs(octagons[i]->vx);
+				octagons[i]->vy = abs(octagons[i]->vy);
+			}
+			// jika pantulan terjadi di bagian atas sisi kanan atau tengah
+			else {
+				octagons[i]->vx = abs(octagons[i]->vx);
+				octagons[i]->vy = abs(octagons[i]->vy);
+			}
+		}
+	}
+
+	// cek tumbukan antara octagon dengan octagon
+	for (int i = 0; i < numOctagon; i++) {
+		for (int j = 0; j < numOctagon; j++) {
+			if (j != i) {
+				if (sqrt(pow(octagons[i]->x - octagons[j]->x, 2) + pow(octagons[i]->y - octagons[j]->y, 2)) <= 2 * 0.15) {
+					if (octagons[i]->x < octagons[j]->x && octagons[i]->y < octagons[j]->y) {
+						octagons[i]->vx = -abs(octagons[i]->vx);
+						octagons[i]->vy = -abs(octagons[i]->vy);
+						octagons[j]->vx = abs(octagons[j]->vx);
+						octagons[j]->vy = abs(octagons[j]->vy);
+					}
+					else if (octagons[i]->x > octagons[j]->x && octagons[i]->y < octagons[j]->y) {
+						octagons[i]->vx = abs(octagons[i]->vx);
+						octagons[i]->vy = -abs(octagons[i]->vy);
+						octagons[j]->vx = -abs(octagons[j]->vx);
+						octagons[j]->vy = abs(octagons[j]->vy);
+					}
+					else if (octagons[i]->x > octagons[j]->x && octagons[i]->y > octagons[j]->y) {
+						octagons[i]->vx = abs(octagons[i]->vx);
+						octagons[i]->vy = abs(octagons[i]->vx);
+						octagons[j]->vx = -abs(octagons[j]->vx);
+						octagons[j]->vy = -abs(octagons[j]->vy);
+					}
+					else if (octagons[i]->x < octagons[j]->x && octagons[i]->y > octagons[j]->y) {
+						octagons[i]->vx = -abs(octagons[i]->vx);
+						octagons[i]->vy = abs(octagons[i]->vy);
+						octagons[j]->vx = abs(octagons[j]->vx);
+						octagons[j]->vy = -abs(octagons[j]->vy);
+					}
+				}
+			}
+		}
+	}
+
+	/*
+		SQUARE COLLISION CONTROLLER
+	*/
+
+	// cek tumbukan antara square dengan kotak pemantul (bouncer)
+	for (int i = 0; i < numSquare; i++) {
+		if (sqrt(pow(squares[i]->x - sqBouncerPosX, 2) + pow(squares[i]->y + 1.0, 2)) <= sqrt(pow(0.5, 2) + pow(0.1, 2))) {
+			// jika pantulan terjadi di bagian atas sisi kiri
+			if (squares[i]->x < sqBouncerPosX) {
+				squares[i]->vx = -abs(squares[i]->vx);
+				squares[i]->vy = abs(squares[i]->vy);
+			}
+			// jika pantulan terjadi di bagian atas sisi kanan atau tengah
+			else {
+				squares[i]->vx = abs(squares[i]->vx);
+				squares[i]->vy = abs(squares[i]->vy);
+			}
+		}
+	}
+
+	// cek tumbukan antara square dengan octagon
+	for (int i = 0; i < numSquare; i++) {
+		for (int j = 0; j < numOctagon; j++) {
+			if (sqrt(pow(squares[i]->x - octagons[j]->x, 2) + pow(squares[i]->y - octagons[j]->y, 2)) <= (0.1*sqrt(2)) + 0.15) {
+				if (squares[i]->x < octagons[j]->x && squares[i]->y < octagons[j]->y) {
+					squares[i]->vx = -abs(squares[i]->vx);
+					squares[i]->vy = -abs(squares[i]->vy);
+					octagons[j]->vx = abs(octagons[j]->vx);
+					octagons[j]->vy = abs(octagons[j]->vy);
+				}
+				else if (squares[i]->x > octagons[j]->x && squares[i]->y < octagons[j]->y) {
+					squares[i]->vx = abs(squares[i]->vx);
+					squares[i]->vy = -abs(squares[i]->vy);
+					octagons[j]->vx = -abs(octagons[j]->vx);
+					octagons[j]->vy = abs(octagons[j]->vy);
+				}
+				else if (squares[i]->x > octagons[j]->x && squares[i]->y > octagons[j]->y) {
+					squares[i]->vx = abs(squares[i]->vx);
+					squares[i]->vy = abs(squares[i]->vx);
+					octagons[j]->vx = -abs(octagons[j]->vx);
+					octagons[j]->vy = -abs(octagons[j]->vy);
+				}
+				else if (squares[i]->x < octagons[j]->x && squares[i]->y > octagons[j]->y) {
+					squares[i]->vx = -abs(squares[i]->vx);
+					squares[i]->vy = abs(squares[i]->vy);
+					octagons[j]->vx = abs(octagons[j]->vx);
+					octagons[j]->vy = -abs(octagons[j]->vy);
+				}
+			}
+		}
+	}
+
+	// cek tumbukan antara square dengan square
+	for (int i = 0; i < numSquare; i++) {
+		for (int j = 0; j < numSquare; j++) {
+			if (j != i) {
+				if (sqrt(pow(squares[i]->x - squares[j]->x, 2) + pow(squares[i]->y - squares[j]->y, 2)) <= 2 * 0.1) {
+					if (squares[i]->x < squares[j]->x && squares[i]->y < squares[j]->y) {
+						squares[i]->vx = -abs(squares[i]->vx);
+						squares[i]->vy = -abs(squares[i]->vy);
+						squares[j]->vx = abs(squares[j]->vx);
+						squares[j]->vy = abs(squares[j]->vy);
+					}
+					else if (squares[i]->x > squares[j]->x && squares[i]->y < squares[j]->y) {
+						squares[i]->vx = abs(squares[i]->vx);
+						squares[i]->vy = -abs(squares[i]->vy);
+						squares[j]->vx = -abs(squares[j]->vx);
+						squares[j]->vy = abs(squares[j]->vy);
+					}
+					else if (squares[i]->x > squares[j]->x && squares[i]->y > squares[j]->y) {
+						squares[i]->vx = abs(squares[i]->vx);
+						squares[i]->vy = abs(squares[i]->vx);
+						squares[j]->vx = -abs(squares[j]->vx);
+						squares[j]->vy = -abs(squares[j]->vy);
+					}
+					else if (squares[i]->x < squares[j]->x && squares[i]->y > squares[j]->y) {
+						squares[i]->vx = -abs(squares[i]->vx);
+						squares[i]->vy = abs(squares[i]->vy);
+						squares[j]->vx = abs(squares[j]->vx);
+						squares[j]->vy = -abs(squares[j]->vy);
+					}
+				}
+			}
+		}
+	}
+
+	/*
+		CIRCLE COLLISION CONTROLLER
+	*/
+
 	// cek tumbukan antara circle dengan kotak pemantul (bouncer)
 	for (int i = 0; i < numCircle; i++) {
-		if (sqrt(pow(circles[i]->x - sqBouncerPosX, 2) + pow(circles[i]->y + 1.0, 2)) <= 0.5) {
+		if (sqrt(pow(circles[i]->x - sqBouncerPosX, 2) + pow(circles[i]->y + 1.0, 2)) <= sqrt(pow(0.5, 2) + pow(circleRadius, 2))) {
 			// jika pantulan terjadi di bagian atas sisi kiri
 			if (circles[i]->x < sqBouncerPosX) {
 				circles[i]->vx = -abs(circles[i]->vx);
@@ -482,7 +614,7 @@ void checkCollisionAct() {
 	// cek tumbukan antara circle dengan kotak
 	for (int i = 0; i < numCircle; i++) {
 		for (int j = 0; j < numSquare; j++) {
-			if (sqrt(pow(circles[i]->x - squares[j]->x, 2) + pow(circles[i]->y - squares[j]->y, 2)) <= 0.24) {
+			if (sqrt(pow(circles[i]->x - squares[j]->x, 2) + pow(circles[i]->y - squares[j]->y, 2)) <= (0.1*sqrt(2)) + circleRadius) {
 				if (circles[i]->x < squares[j]->x && circles[i]->y > squares[j]->y) {
 					circles[i]->vx = -abs(circles[i]->vx);
 					circles[i]->vy = abs(circles[i]->vy);
@@ -513,11 +645,43 @@ void checkCollisionAct() {
 
 	//0.1akar2 + 0.1 = 0.24
 
+	// cek tumbukan antara circle dengan octagon
+	for (int i = 0; i < numCircle; i++) {
+		for (int j = 0; j < numOctagon; j++) {
+			if (sqrt(pow(circles[i]->x - octagons[j]->x, 2) + pow(circles[i]->y - octagons[j]->y, 2)) <= 0.431 + circleRadius) {
+				if (circles[i]->x < octagons[j]->x && circles[i]->y < octagons[j]->y) {
+					circles[i]->vx = -abs(circles[i]->vx);
+					circles[i]->vy = -abs(circles[j]->vy);
+					octagons[j]->vx = abs(octagons[j]->vx);
+					octagons[j]->vy = abs(octagons[j]->vy);
+				}
+				else if (circles[i]->x < octagons[j]->x && circles[i]->y > octagons[j]->y) {
+					circles[i]->vx = -abs(circles[i]->vx);
+					circles[i]->vy = abs(circles[i]->vy);
+					octagons[j]->vx = abs(octagons[j]->vx);
+					octagons[j]->vy = -abs(octagons[j]->vy);
+				}
+				else if (circles[i]->x > octagons[j]->x && circles[i]->y < octagons[j]->y) {
+					circles[i]->vx = abs(circles[i]->vx);
+					circles[i]->vy = -abs(circles[i]->vy);
+					octagons[j]->vx = -abs(octagons[j]->vx);
+					octagons[j]->vy = abs(octagons[j]->vy);
+				}
+				else if (circles[i]->x > octagons[j]->x && circles[i]->y > octagons[j]->y) {
+					circles[i]->vx = abs(circles[i]->vx);
+					circles[i]->vy = abs(circles[i]->vy);
+					octagons[j]->vx = -abs(octagons[j]->vx);
+					octagons[j]->vy = -abs(octagons[j]->vy);
+				}
+			}
+		}
+	}
+
 	// cek tumbukan antara circle dengan circle
 	for (int i = 0; i < numCircle; i++) {
 		for (int j = 0; j < numCircle; j++) {
 			if (j != i) {
-				if (sqrt(pow(circles[i]->x - circles[j]->x, 2) + pow(circles[i]->y - circles[j]->y, 2)) <= 0.2) {
+				if (sqrt(pow(circles[i]->x - circles[j]->x, 2) + pow(circles[i]->y - circles[j]->y, 2)) <= circleRadius*2) {
 					
 					if (circles[i]->x < circles[j]->x && circles[i]->y < circles[j]->y) {
 						circles[i]->vx = -abs(circles[i]->vx);
@@ -550,6 +714,30 @@ void checkCollisionAct() {
 	}
 }
 
+/*
+	Prosedur menggerakkan 2 buah garis di tengah window
+*/
+void stepDbSplitLine() {
+	if (stateGate0 == 'L') {
+		if (sqGatePosX0 >= -0.8f) {
+			sqGatePosX0 -= 0.01f;
+		}
+		else {
+			stateGate0 = 'R';
+			sqGatePosX0 = -0.8f;
+		}
+	}
+	else {
+		if (sqGatePosX0 <= 0.5f) {
+			sqGatePosX0 += 0.01f;
+		}
+		else {
+			stateGate0 = 'L';
+			sqGatePosX0 = 0.5f;
+		}
+	}
+}
+
 double frames_per_second = 30;   // for animation in real time
 
 void animation_step() {
@@ -564,7 +752,11 @@ void animation_step() {
 	
 		// melakukan pengecekan terhadap tumbukan antar objek
 		checkCollisionAct();
-	
+
+		// perubahan posisi garis penjaga kotak abu-abu tengah
+		stepDbSplitLine();
+
+
 	while ((double(clock()) - start_time) / CLOCKS_PER_SEC < one_per_fsec);
 	glutPostRedisplay();
 }
@@ -596,7 +788,7 @@ void display() {
 			glVertex2d(circles[i]->x, circles[i]->y);
 			double phi = 2 * pi / 24;
 			for (int j = 0; j < 25; j++)
-				glVertex2d(circles[i]->x + 0.1 * cos(phi*j), circles[i]->y + 0.1 * sin(phi*j));
+				glVertex2d(circles[i]->x + circleRadius * cos(phi*j), circles[i]->y + circleRadius * sin(phi*j));
 		glEnd();
 	}
 	glPopMatrix();
@@ -604,8 +796,8 @@ void display() {
 	// membentuk objek numSquare buah kotak
 	glPushMatrix();
 	for (int i = 0; i < numSquare; i++) {
-		//glRotatef(angle, 1.0f, 1.0f, 0.0f); // rotate by angle in degrees
-		glTranslatef(squares[i]->x, squares[i]->y, 0.0f);
+		//glTranslatef(squares[i]->x, squares[i]->y, 0.0f);
+		//glRotatef(angle, 0.0f, 0.0f, 1.0f); 
 		glBegin(GL_QUADS);
 			// memilih warna objek
 			if (fillColorSquare == 0) {
@@ -614,10 +806,19 @@ void display() {
 				}
 			}
 			glColor3f(squares[i]->R, squares[i]->G, squares[i]->B);
+
+			/*
 			glVertex2f(-0.2f, 0.0f);
 			glVertex2f(0.0f, 0.0f);
 			glVertex2f(0.0f, 0.2f);
 			glVertex2f(-0.2f, 0.2f);
+			*/
+
+			glVertex2f((float)squares[i]->x - 0.1f, (float)squares[i]->y - 0.1f);
+			glVertex2f((float)squares[i]->x + 0.1f, (float)squares[i]->y - 0.1f);
+			glVertex2f((float)squares[i]->x + 0.1f, (float)squares[i]->y + 0.1f);
+			glVertex2f((float)squares[i]->x - 0.1f, (float)squares[i]->y + 0.1f);
+
 		glEnd();
 	}
 	glPopMatrix();
@@ -625,7 +826,7 @@ void display() {
 	// membentuk objek numOctagon buah segi delapan
 	glPushMatrix();
 	for (int i = 0; i < numOctagon; i++) {
-		glTranslatef(octagons[i]->x, octagons[i]->y, 0.0f);
+		//glTranslatef(octagons[i]->x, octagons[i]->y, 0.0f);
 		glBegin(GL_POLYGON);
 			// memilih warna objek
 			if (fillColorOctagon == 0) {
@@ -634,6 +835,7 @@ void display() {
 				}
 			}
 			glColor3f(octagons[i]->R, octagons[i]->G, octagons[i]->B);
+			/*
 			glVertex2f(-0.2f, -0.2f);
 			glVertex2f(-0.25f, -0.1f);
 			glVertex2f(-0.2f, 0.0f);
@@ -642,6 +844,16 @@ void display() {
 			glVertex2f(0.05f, -0.1f);
 			glVertex2f(0.0f, -0.2f);
 			glVertex2f(-0.1f, -0.25f);
+			*/
+
+			glVertex2f((float)octagons[i]->x - 0.1f, (float)octagons[i]->y - 0.1f);
+			glVertex2f((float)octagons[i]->x - 0.15f, (float)octagons[i]->y);
+			glVertex2f((float)octagons[i]->x - 0.1f, (float)octagons[i]->y + 0.1f);
+			glVertex2f((float)octagons[i]->x, (float)octagons[i]->y + 0.15f);
+			glVertex2f((float)octagons[i]->x + 0.1f, (float)octagons[i]->y + 0.1f);
+			glVertex2f((float)octagons[i]->x + 0.15f, (float)octagons[i]->y);
+			glVertex2f((float)octagons[i]->x + 0.1f, (float)octagons[i]->y - 0.1f);
+			glVertex2f((float)octagons[i]->x, (float)octagons[i]->y - 0.15f);
 		glEnd();
 	}
 	glPopMatrix();
@@ -657,20 +869,57 @@ void display() {
 	// 0.44^2 - 5/1600 = 0.189 - 5/1600 = 0.186
 	// sqrt(0.186) = 0.431
 
+	// sqr(0.15)*2 - sqr(0.15)sqrt(2) = 0.045 - 0.032 = 0.013
+	// sqrt(0.013) = 0.114
+	// 0.15*0.15 - 0.057*0.057 = 0.019
+	// sqrt(0.019) = 0.14
 
 	/*
 		Objek yang dibuat oleh aplikasi saat dijalankan (bukan dari user)
 	*/
+
+	// membentuk garis penjaga kotak abu-abu tengah
+	GLfloat firstlineSEPoint[] =
+	{
+		-0.9f, 0.0f, 0.0f,
+		-0.25f, 0.0f, 0.0f
+	};
+
+	GLfloat secondlineSEPoint[] = 
+	{
+		0.25f, 0.0f, 0.0f,
+		0.9f, 0.0f, 0.0f
+	};
+
+	// membentuk 2 buah garis putus di tengah window
+	glPushMatrix();
+	glTranslatef(sqGatePosX0, sqGatePosY0, 0.0f);
+	glEnable(GL_LINE_SMOOTH);
+	glEnable(GL_LINE_STIPPLE);
+	glPushAttrib(GL_LINE_BIT);
+	glLineWidth(10);
+	glLineStipple(1, 0x00FF);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 0, firstlineSEPoint);
+	glDrawArrays(GL_LINES, 0, 2);
+	glVertexPointer(3, GL_FLOAT, 0, secondlineSEPoint);
+	glDrawArrays(GL_LINES, 0, 2);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glPopAttrib();
+	glDisable(GL_LINE_STIPPLE);
+	glDisable(GL_LINE_SMOOTH);
+	glPopMatrix();
+	
 	// membentuk kotak abu-abu di tengah yang berotasi dan resize
-	glPushMatrix();                     
-	//glTranslatef(-0.7f, -0.5f, 0.0f);   
-	glRotatef(angle, 0.0f, 0.0f, 1.0f); 
+	glPushMatrix();     
+	glTranslatef(0.0f, 0.36f, 0.0f);
+	glRotatef(angle, 0.0f, 0.0f, 1.0f);
 	glBegin(GL_QUADS);
 		glColor3f(0.5f, 0.5f, 0.5f); 
-		glVertex2f(-0.2f, 0.2f);
-		glVertex2f(0.2f, 0.2f);
-		glVertex2f(0.2f, 0.6f);
-		glVertex2f(-0.2f, 0.6f);
+		glVertex2f(-0.18f, -0.18f);
+		glVertex2f(0.18f, -0.18f);
+		glVertex2f(0.18f, 0.18f);
+		glVertex2f(-0.18f, 0.18f);
 	glEnd();
 	glPopMatrix();                   
 
@@ -686,19 +935,9 @@ void display() {
 	glEnd();
 	glPopMatrix();
 
-
-
-
-	/////////////////////////////////////
-
-	
-
-	/////////////////////////////////////
-
-
-
 	glutSwapBuffers();
 
+	
 	// perubahan sudut rotasi 
 	angle += 2.0f;
 }
@@ -729,10 +968,10 @@ void reshape(int w, int h) {
 	gluOrtho2D(clipAreaXLeft, clipAreaXRight, clipAreaYBottom, clipAreaYTop);
 
 	if (numCircle > 0) {
-		circleMinPosX = clipAreaXLeft + 0.1f;
-		circleMaxPosX = clipAreaXRight - 0.1f;
-		circleMinPosY = clipAreaYBottom + 0.1f;
-		circleMaxPosY = clipAreaYTop - 0.1f;
+		circleMinPosX = clipAreaXLeft + circleRadius;
+		circleMaxPosX = clipAreaXRight - circleRadius;
+		circleMinPosY = clipAreaYBottom + circleRadius;
+		circleMaxPosY = clipAreaYTop - circleRadius;
 	}
 	if (numSquare > 0) {
 		squareMinPosX = clipAreaXLeft + 0.1f;
@@ -741,16 +980,15 @@ void reshape(int w, int h) {
 		squareMaxPosY = clipAreaYTop - 0.1f;
 	}
 	if (numOctagon > 0) {
-		octagonMinPosX = clipAreaXLeft + 0.431f;
-		octagonMaxPosX = clipAreaXRight - 0.431f;
-		octagonMinPosY = clipAreaYBottom + 0.431f;
-		octagonMaxPosY = clipAreaYTop - 0.431f;
+		octagonMinPosX = clipAreaXLeft + 0.14f;
+		octagonMaxPosX = clipAreaXRight - 0.14f;
+		octagonMinPosY = clipAreaYBottom + 0.14f;
+		octagonMaxPosY = clipAreaYTop - 0.14f;
 	}
 
-	
+	splitterMinPosX = clipAreaXLeft + 0.325f;
+	splitterMaxPosX = clipAreaXRight - 0.325f;
 
-
-	//gluOrtho2D(-L, L, 0, L / w*(2.0*h));
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
@@ -824,8 +1062,12 @@ void clearAlloc() {
 	}
 	delete[] octagons;
 	cout << "clear alloc for octagon done" << endl;
+
 }
 
+/*
+	Fungsi utama
+*/
 int main(int argc, char *argv[]) {
 
 	glutInit(&argc, argv);
@@ -838,7 +1080,7 @@ int main(int argc, char *argv[]) {
 
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 
-	glutInitWindowSize(720, 540);
+	glutInitWindowSize(840, 630);
 
 	glutInitWindowPosition(100, 100);
 	glutCreateWindow("Bouncing Balls Animation");
