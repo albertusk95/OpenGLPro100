@@ -10,6 +10,7 @@
 #include <time.h>
 #include <cstdlib>
 #include <iostream>
+#include <iomanip>      // std::setprecision
 #include <sstream>
 #include <string>
 #include <windows.h> // hanya untuk OS Windows
@@ -50,6 +51,12 @@ double t;
 
 int step_number;      // time step number
 
+// variabel permainan
+int isStart = 0;
+int totalPoint = 0;
+int displayFinalState = 0;
+float deltaTime = 5.00;
+
 // variabel yang menyimpan apakah user ingin warna objek ditentukan sendiri atau random
 int fillColorSquare, fillColorCircle, fillColorOctagon, fillColorLine;
 
@@ -57,8 +64,10 @@ int fillColorSquare, fillColorCircle, fillColorOctagon, fillColorLine;
 GLfloat sqBouncerPosX = 0.0f, sqBouncerPosY = 0.0f;
 
 // variabel yang menyimpan posisi hasil translasi garis penjaga kotak abu-abu tengah
-GLfloat sqGatePosX0 = 0.0f, sqGatePosY0 = 0.0f;
-char stateGate0 = 'L', stateGate1 = 'R';
+GLfloat sqGatePosXM = 0.0f, sqGatePosYM = 0.0f;
+GLfloat sqGatePosX0 = -0.575f, sqGatePosY0 = 0.0f;
+GLfloat sqGatePosX1 = 0.575f, sqGatePosY1 = 0.0f;
+char stateGate = 'L';
 
 // variabel yang menyimpan batas-batas daerah untuk menampilkan objek
 GLfloat circleMinPosX, circleMaxPosX, circleMinPosY, circleMaxPosY;
@@ -66,9 +75,10 @@ GLfloat squareMinPosX, squareMaxPosX, squareMinPosY, squareMaxPosY;
 GLfloat octagonMinPosX, octagonMaxPosX, octagonMinPosY, octagonMaxPosY;
 GLfloat splitterMinPosX, splitterMaxPosX;
 
-// Current rotational angle of the shapes
+// sudut rotasi kotak abu-abu penanda total poin dan sisa waktu
 GLfloat angle = 0.0f;  
 
+// jari-jari lingkaran
 GLfloat circleRadius = 0.1f;
 
 /*
@@ -248,6 +258,8 @@ void getUserInput() {
 	}
 
 	cout << endl;
+
+	totalPoint = (numCircle + numSquare + numOctagon) * 3;
 
 	t = 0;
 	step_number = 0;
@@ -469,6 +481,63 @@ void checkCollisionAct() {
 		}
 	}
 
+	// cek tumbukan antara octagon dengan garis tengah window
+	for (int i = 0; i < numOctagon; i++) {
+		/*
+		Garis tengah bagian kiri
+		*/
+		// jika octagon berada dalam lingkup garis tengah berdasarkan sumbu x
+		if (octagons[i]->x > sqGatePosX0 - 0.325 && octagons[i]->x < sqGatePosX0 + 0.325) {
+			// jika octagon berada dalam posisi dekat dengan garis tengah dilihat dari sumbu y
+			if (abs(octagons[i]->y - sqGatePosY0) <= 0.15) {
+				// octagon bertumbukan dengan garis tengah bagian kiri
+				if (octagons[i]->x < sqGatePosX0 && octagons[i]->y < sqGatePosY0) {
+					octagons[i]->vx = -abs(octagons[i]->vx);
+					octagons[i]->vy = -abs(octagons[i]->vy);
+				}
+				else if (octagons[i]->x > sqGatePosX0 && octagons[i]->y < sqGatePosY0) {
+					octagons[i]->vx = abs(octagons[i]->vx);
+					octagons[i]->vy = -abs(octagons[i]->vy);
+				}
+				else if (octagons[i]->x < sqGatePosX0 && octagons[i]->y > sqGatePosY0) {
+					octagons[i]->vx = -abs(octagons[i]->vx);
+					octagons[i]->vy = abs(octagons[i]->vy);
+				}
+				else if (octagons[i]->x > sqGatePosX0 && octagons[i]->y > sqGatePosY0) {
+					octagons[i]->vx = abs(octagons[i]->vx);
+					octagons[i]->vy = abs(octagons[i]->vy);
+				}
+			}
+		}
+
+		/*
+		Garis tengah bagian kanan
+		*/
+		// jika octagon berada dalam lingkup garis tengah berdasarkan sumbu x
+		if (octagons[i]->x > sqGatePosX1 - 0.325 && octagons[i]->x < sqGatePosX1 + 0.325) {
+			// jika octagon berada dalam posisi dekat dengan garis tengah dilihat dari sumbu y
+			if (abs(octagons[i]->y - sqGatePosY1) <= 0.15) {
+				// octagon bertumbukan dengan garis tengah bagian kanan
+				if (octagons[i]->x < sqGatePosX1 && octagons[i]->y < sqGatePosY1) {
+					octagons[i]->vx = -abs(octagons[i]->vx);
+					octagons[i]->vy = -abs(octagons[i]->vy);
+				}
+				else if (octagons[i]->x > sqGatePosX1 && octagons[i]->y < sqGatePosY1) {
+					octagons[i]->vx = abs(octagons[i]->vx);
+					octagons[i]->vy = -abs(octagons[i]->vy);
+				}
+				else if (octagons[i]->x < sqGatePosX1 && octagons[i]->y > sqGatePosY1) {
+					octagons[i]->vx = -abs(octagons[i]->vx);
+					octagons[i]->vy = abs(octagons[i]->vy);
+				}
+				else if (octagons[i]->x > sqGatePosX1 && octagons[i]->y > sqGatePosY1) {
+					octagons[i]->vx = abs(octagons[i]->vx);
+					octagons[i]->vy = abs(octagons[i]->vy);
+				}
+			}
+		}
+	}
+
 	// cek tumbukan antara octagon dengan octagon
 	for (int i = 0; i < numOctagon; i++) {
 		for (int j = 0; j < numOctagon; j++) {
@@ -519,6 +588,63 @@ void checkCollisionAct() {
 			else {
 				squares[i]->vx = abs(squares[i]->vx);
 				squares[i]->vy = abs(squares[i]->vy);
+			}
+		}
+	}
+
+	// cek tumbukan antara square dengan garis tengah window
+	for (int i = 0; i < numSquare; i++) {
+		/*
+		Garis tengah bagian kiri
+		*/
+		// jika square berada dalam lingkup garis tengah berdasarkan sumbu x
+		if (squares[i]->x > sqGatePosX0 - 0.325 && squares[i]->x < sqGatePosX0 + 0.325) {
+			// jika square berada dalam posisi dekat dengan garis tengah dilihat dari sumbu y
+			if (abs(squares[i]->y - sqGatePosY0) <= 0.1) {
+				// square bertumbukan dengan garis tengah bagian kiri
+				if (squares[i]->x < sqGatePosX0 && squares[i]->y < sqGatePosY0) {
+					squares[i]->vx = -abs(squares[i]->vx);
+					squares[i]->vy = -abs(squares[i]->vy);
+				}
+				else if (squares[i]->x > sqGatePosX0 && squares[i]->y < sqGatePosY0) {
+					squares[i]->vx = abs(squares[i]->vx);
+					squares[i]->vy = -abs(squares[i]->vy);
+				}
+				else if (squares[i]->x < sqGatePosX0 && squares[i]->y > sqGatePosY0) {
+					squares[i]->vx = -abs(squares[i]->vx);
+					squares[i]->vy = abs(squares[i]->vy);
+				}
+				else if (squares[i]->x > sqGatePosX0 && squares[i]->y > sqGatePosY0) {
+					squares[i]->vx = abs(squares[i]->vx);
+					squares[i]->vy = abs(squares[i]->vy);
+				}
+			}
+		}
+
+		/*
+		Garis tengah bagian kanan
+		*/
+		// jika square berada dalam lingkup garis tengah berdasarkan sumbu x
+		if (squares[i]->x > sqGatePosX1 - 0.325 && squares[i]->x < sqGatePosX1 + 0.325) {
+			// jika square berada dalam posisi dekat dengan garis tengah dilihat dari sumbu y
+			if (abs(squares[i]->y - sqGatePosY1) <= 0.1) {
+				// square bertumbukan dengan garis tengah bagian kanan
+				if (squares[i]->x < sqGatePosX1 && squares[i]->y < sqGatePosY1) {
+					squares[i]->vx = -abs(squares[i]->vx);
+					squares[i]->vy = -abs(squares[i]->vy);
+				}
+				else if (squares[i]->x > sqGatePosX1 && squares[i]->y < sqGatePosY1) {
+					squares[i]->vx = abs(squares[i]->vx);
+					squares[i]->vy = -abs(squares[i]->vy);
+				}
+				else if (squares[i]->x < sqGatePosX1 && squares[i]->y > sqGatePosY1) {
+					squares[i]->vx = -abs(squares[i]->vx);
+					squares[i]->vy = abs(squares[i]->vy);
+				}
+				else if (squares[i]->x > sqGatePosX1 && squares[i]->y > sqGatePosY1) {
+					squares[i]->vx = abs(squares[i]->vx);
+					squares[i]->vy = abs(squares[i]->vy);
+				}
 			}
 		}
 	}
@@ -610,6 +736,63 @@ void checkCollisionAct() {
 	}
 
 	//o.5^2 + 0.1^2 = 1/4 + 1/100 = 26/100 = sqrt(26)/10 = 0.5
+
+	// cek tumbukan antara circle dengan garis tengah window
+	for (int i = 0; i < numCircle; i++) {
+		/*
+			Garis tengah bagian kiri
+		*/
+		// jika circle berada dalam lingkup garis tengah berdasarkan sumbu x
+		if (circles[i]->x > sqGatePosX0 - 0.325 && circles[i]->x < sqGatePosX0 + 0.325) {
+			// jika circle berada dalam posisi dekat dengan garis tengah dilihat dari sumbu y
+			if (abs(circles[i]->y - sqGatePosY0) <= circleRadius) {
+				// circle bertumbukan dengan garis tengah bagian kiri
+				if (circles[i]->x < sqGatePosX0 && circles[i]->y < sqGatePosY0) {
+					circles[i]->vx = -abs(circles[i]->vx);
+					circles[i]->vy = -abs(circles[i]->vy);
+				}
+				else if (circles[i]->x > sqGatePosX0 && circles[i]->y < sqGatePosY0) {
+					circles[i]->vx = abs(circles[i]->vx);
+					circles[i]->vy = -abs(circles[i]->vy);
+				}
+				else if (circles[i]->x < sqGatePosX0 && circles[i]->y > sqGatePosY0) {
+					circles[i]->vx = -abs(circles[i]->vx);
+					circles[i]->vy = abs(circles[i]->vy);
+				}
+				else if (circles[i]->x > sqGatePosX0 && circles[i]->y > sqGatePosY0) {
+					circles[i]->vx = abs(circles[i]->vx);
+					circles[i]->vy = abs(circles[i]->vy);
+				}
+			}
+		}
+
+		/*
+			Garis tengah bagian kanan
+		*/
+		// jika circle berada dalam lingkup garis tengah berdasarkan sumbu x
+		if (circles[i]->x > sqGatePosX1 - 0.325 && circles[i]->x < sqGatePosX1 + 0.325) {
+			// jika circle berada dalam posisi dekat dengan garis tengah dilihat dari sumbu y
+			if (abs(circles[i]->y - sqGatePosY1) <= circleRadius) {
+				// circle bertumbukan dengan garis tengah bagian kanan
+				if (circles[i]->x < sqGatePosX1 && circles[i]->y < sqGatePosY1) {
+					circles[i]->vx = -abs(circles[i]->vx);
+					circles[i]->vy = -abs(circles[i]->vy);
+				}
+				else if (circles[i]->x > sqGatePosX1 && circles[i]->y < sqGatePosY1) {
+					circles[i]->vx = abs(circles[i]->vx);
+					circles[i]->vy = -abs(circles[i]->vy);
+				}
+				else if (circles[i]->x < sqGatePosX1 && circles[i]->y > sqGatePosY1) {
+					circles[i]->vx = -abs(circles[i]->vx);
+					circles[i]->vy = abs(circles[i]->vy);
+				}
+				else if (circles[i]->x > sqGatePosX1 && circles[i]->y > sqGatePosY1) {
+					circles[i]->vx = abs(circles[i]->vx);
+					circles[i]->vy = abs(circles[i]->vy);
+				}
+			}
+		}
+	}
 
 	// cek tumbukan antara circle dengan kotak
 	for (int i = 0; i < numCircle; i++) {
@@ -717,26 +900,41 @@ void checkCollisionAct() {
 /*
 	Prosedur menggerakkan 2 buah garis di tengah window
 */
-void stepDbSplitLine() {
-	if (stateGate0 == 'L') {
-		if (sqGatePosX0 >= -0.8f) {
+void stepSplitLine() {
+	if (stateGate == 'L') {
+		if (sqGatePosXM >= splitterMinPosX + 0.325f) {
+			sqGatePosXM -= 0.01f;
 			sqGatePosX0 -= 0.01f;
+			sqGatePosX1 -= 0.01f;
 		}
 		else {
-			stateGate0 = 'R';
-			sqGatePosX0 = -0.8f;
+			stateGate = 'R';
 		}
 	}
 	else {
-		if (sqGatePosX0 <= 0.5f) {
+		if (sqGatePosXM <= splitterMaxPosX - 0.325f) {
+			sqGatePosXM += 0.01f;
 			sqGatePosX0 += 0.01f;
+			sqGatePosX1 += 0.01f;
 		}
 		else {
-			stateGate0 = 'L';
-			sqGatePosX0 = 0.5f;
+			stateGate = 'L';
 		}
 	}
 }
+
+/*
+	Prosedur mengecek status akhir permainan, dengan hasil
+	akhir adalah menang atau kalah
+*/
+
+void drawText(const char *str, int len_str, double x, double y, string GLUT_BITMAP_TYPE);
+
+void checkFinalState() {
+	
+}
+
+void clearAlloc();
 
 double frames_per_second = 30;   // for animation in real time
 
@@ -754,18 +952,30 @@ void animation_step() {
 		checkCollisionAct();
 
 		// perubahan posisi garis penjaga kotak abu-abu tengah
-		stepDbSplitLine();
+		stepSplitLine();
 
+		// melakukan pengurangan waktu permainan
+		if (deltaTime > 0.0f) {
+			deltaTime = deltaTime - 0.02f;
+		}
+		else {
+			deltaTime = -0.02f;
+			displayFinalState = 1;
+		}
 
 	while ((double(clock()) - start_time) / CLOCKS_PER_SEC < one_per_fsec);
 	glutPostRedisplay();
 }
 
-void drawText(const string &str, double x, double y) {
+void drawText(const char *str, int len_str, double x, double y, string GLUT_BITMAP_TYPE) {
 	glRasterPos2d(x, y);
-	int len = str.find('\0');
-	for (int i = 0; i < len; i++)
-		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, str[i]);
+	for (int i = 0; i < len_str; i++)
+		if (GLUT_BITMAP_TYPE == "GLUT_BITMAP_TIMES_ROMAN_24") {
+			glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, (int)str[i]);
+		}
+		else {
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, (int)str[i]);
+		}
 }
 
 // Glut callback function to update the display
@@ -878,30 +1088,35 @@ void display() {
 		Objek yang dibuat oleh aplikasi saat dijalankan (bukan dari user)
 	*/
 
-	// membentuk garis penjaga kotak abu-abu tengah
+	// posisi titik awal dan akhir garis pertama
 	GLfloat firstlineSEPoint[] =
 	{
 		-0.9f, 0.0f, 0.0f,
 		-0.25f, 0.0f, 0.0f
-	};
+	}; // mid point = -0.575
 
+	// posisi titik awal dan akhir garis kedua
 	GLfloat secondlineSEPoint[] = 
 	{
 		0.25f, 0.0f, 0.0f,
 		0.9f, 0.0f, 0.0f
-	};
+	}; // mid point = 0.575
 
-	// membentuk 2 buah garis putus di tengah window
+	// membentuk 1 buah garis sambung dan 1 buah garis putus di tengah window
 	glPushMatrix();
-	glTranslatef(sqGatePosX0, sqGatePosY0, 0.0f);
+	glTranslatef(sqGatePosXM, sqGatePosYM, 0.0f);
+	glColor3f(1.0f, 0.3f, 0.3f);
 	glEnable(GL_LINE_SMOOTH);
-	glEnable(GL_LINE_STIPPLE);
+	//glEnable(GL_LINE_STIPPLE);
 	glPushAttrib(GL_LINE_BIT);
 	glLineWidth(10);
-	glLineStipple(1, 0x00FF);
+	//glLineStipple(1, 0x00FF);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, 0, firstlineSEPoint);
 	glDrawArrays(GL_LINES, 0, 2);
+
+	glEnable(GL_LINE_STIPPLE);
+	glLineStipple(1, 0x00FF);
 	glVertexPointer(3, GL_FLOAT, 0, secondlineSEPoint);
 	glDrawArrays(GL_LINES, 0, 2);
 	glDisableClientState(GL_VERTEX_ARRAY);
@@ -910,30 +1125,86 @@ void display() {
 	glDisable(GL_LINE_SMOOTH);
 	glPopMatrix();
 	
-	// membentuk kotak abu-abu di tengah yang berotasi dan resize
+	// membentuk kotak abu-abu di bagian kiri atas yang berotasi sebagai penanda total point
 	glPushMatrix();     
-	glTranslatef(0.0f, 0.36f, 0.0f);
+	glTranslatef(-1.0f, 0.7f, 0.0f);
 	glRotatef(angle, 0.0f, 0.0f, 1.0f);
 	glBegin(GL_QUADS);
 		glColor3f(0.5f, 0.5f, 0.5f); 
-		glVertex2f(-0.18f, -0.18f);
-		glVertex2f(0.18f, -0.18f);
-		glVertex2f(0.18f, 0.18f);
-		glVertex2f(-0.18f, 0.18f);
+		glVertex2f(-0.15f, -0.15f);
+		glVertex2f(0.15f, -0.15f);
+		glVertex2f(0.15f, 0.15f);
+		glVertex2f(-0.15f, 0.15f);
 	glEnd();
 	glPopMatrix();                   
+
+	// membentuk kotak abu-abu di bagian kanan atas yang berotasi sebagai penanda waktu
+	glPushMatrix();
+	glTranslatef(1.0f, 0.7f, 0.0f);
+	glRotatef(angle, 0.0f, 0.0f, 1.0f);
+	glBegin(GL_QUADS);
+	glColor3f(0.5f, 0.5f, 0.5f);
+	glVertex2f(-0.15f, -0.15f);
+	glVertex2f(0.15f, -0.15f);
+	glVertex2f(0.15f, 0.15f);
+	glVertex2f(-0.15f, 0.15f);
+	glEnd();
+	glPopMatrix();
 
 	// membentuk objek kotak pemantul abu-abu
 	glPushMatrix();
 	glTranslatef(sqBouncerPosX, sqBouncerPosY, 0.0f);
 	glBegin(GL_QUADS);
-		glColor3f(1.0f, 1.0f, 1.0f);
+		glColor3f(0.8f, 0.5f, 0.5f);
 		glVertex2f(-0.5f, -1.0f);
 		glVertex2f(0.5f, -1.0f);
 		glVertex2f(0.5f, -0.8f);
 		glVertex2f(-0.5f, -0.8f);
 	glEnd();
 	glPopMatrix();
+	
+	// membentuk teks sebelum permainan berjalan
+	if (isStart == 0) {
+		string txt_intro0 = "Klik di sembarang tempat untuk memulai permainan.";
+		string txt_intro1 = "Anda menang jika dapat mencapai total poin sebesar";
+		string txt_intro2 = to_string(totalPoint);
+		glPushMatrix();
+		glColor3f(1.0f, 1.0f, 1.0f);
+		drawText(txt_intro0.data(), txt_intro0.size(), -0.57, 0.75, "GLUT_BITMAP_HELVETICA_18");
+		drawText(txt_intro1.data(), txt_intro1.size(), -0.58, 0.6, "GLUT_BITMAP_HELVETICA_18");
+		drawText(txt_intro2.data(), txt_intro2.size(), 0.0, 0.45, "GLUT_BITMAP_TIMES_ROMAN_24");
+		glPopMatrix();
+	}
+
+	// membentuk teks selama permainan berjalan
+	if (deltaTime >= -0.02f) {
+		string txt_deltaTime;
+		string txt_titledT = "Time";
+		stringstream stream_deltaTime;
+		if (deltaTime <= 0.0f) {
+			deltaTime = 0.0f;
+		}
+		glPushMatrix();
+		stream_deltaTime << fixed << setprecision(2) << deltaTime;
+		txt_deltaTime = stream_deltaTime.str();
+		glColor3f(0.0f, 0.0f, 0.0f);
+		drawText(txt_titledT.data(), txt_titledT.size(), 0.92, 0.75, "GLUT_BITMAP_HELVETICA_18");
+		drawText(txt_deltaTime.data(), txt_deltaTime.size(), 0.9, 0.65, "GLUT_BITMAP_TIMES_ROMAN_24");
+		glPopMatrix();
+	}
+
+	// final state check
+	if (deltaTime <= 0.0f) {
+		string txt = "FINAL RESULT";
+		glColor3f(1.0f, 1.0f, 1.0f);
+		drawText(txt.data(), txt.size(), -0.5, 0.5, "GLUT_BITMAP_TIMES_ROMAN_24");
+		deltaTime = 0.0f;
+		if (displayFinalState == 1) {
+			clearAlloc();
+			exit(0);
+		}
+	}
+
 
 	glutSwapBuffers();
 
@@ -986,8 +1257,8 @@ void reshape(int w, int h) {
 		octagonMaxPosY = clipAreaYTop - 0.14f;
 	}
 
-	splitterMinPosX = clipAreaXLeft + 0.325f;
-	splitterMaxPosX = clipAreaXRight - 0.325f;
+	splitterMinPosX = clipAreaXLeft + 0.65f;
+	splitterMaxPosX = clipAreaXRight - 0.65f;
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -1008,8 +1279,50 @@ void mouse(int button, int state, int x, int y) {
 			else {
 				glutIdleFunc(animation_step);
 				running = true;
+				isStart = 1;
 			}
 		}
+	}
+}
+
+/*
+	Prosedur dealokasi memori untuk pembentukan objek
+*/
+void clearAlloc() {
+
+	// deallocate circle's object allocation
+	for (int i = 0; i < numCircle; i++) {
+		delete[] circles[i];
+	}
+	delete[] circles;
+	cout << "clear alloc for circle done" << endl;
+
+	// deallocate square's object allocation
+	for (int i = 0; i < numSquare; i++) {
+		delete[] squares[i];
+	}
+	delete[] squares;
+	cout << "clear alloc for square done" << endl;
+
+	// deallocate octagon's object allocation
+	for (int i = 0; i < numOctagon; i++) {
+		delete[] octagons[i];
+	}
+	delete[] octagons;
+	cout << "clear alloc for octagon done" << endl;
+	
+	char aaa;
+	cout << "aaa: ";
+	cin >> aaa;
+}
+
+/* Callback handler for normal-key event */
+void keyboard(unsigned char key, int x, int y) {
+	switch (key) {
+	case 27:     // ESC key
+		clearAlloc();
+		exit(0);
+		break;
 	}
 }
 
@@ -1040,31 +1353,6 @@ void specialKeys(int key, int x, int y) {
 	}
 }
 
-void clearAlloc() {
-
-	// deallocate circle's object allocation
-	for (int i = 0; i < numCircle; i++) {
-		delete[] circles[i];
-	}
-	delete[] circles;
-	cout << "clear alloc for circle done" << endl;
-
-	// deallocate square's object allocation
-	for (int i = 0; i < numSquare; i++) {
-		delete[] squares[i];
-	}
-	delete[] squares;
-	cout << "clear alloc for square done" << endl;
-
-	// deallocate octagon's object allocation
-	for (int i = 0; i < numOctagon; i++) {
-		delete[] octagons[i];
-	}
-	delete[] octagons;
-	cout << "clear alloc for octagon done" << endl;
-
-}
-
 /*
 	Fungsi utama
 */
@@ -1074,25 +1362,30 @@ int main(int argc, char *argv[]) {
 
 	getUserInput();
 
-	create_circle();	// lingkaran
-	create_square();	// kotak
-	create_octagon();	// segi delapan
+	if (numCircle > 0) {
+		create_circle();	// lingkaran
+	}
+	if (numSquare > 0) {
+		create_square();	// kotak
+	}
+	if (numOctagon > 0) {
+		create_octagon();	// segi delapan
+	}
 
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 
-	glutInitWindowSize(840, 630);
+	glutInitWindowSize(880, 660);
 
-	glutInitWindowPosition(100, 100);
-	glutCreateWindow("Bouncing Balls Animation");
+	glutInitWindowPosition(100, 120);
+	glutCreateWindow("OpenGLPro100");
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glShadeModel(GL_FLAT);
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
 	glutMouseFunc(mouse);
+	glutKeyboardFunc(keyboard);   // Register callback handler for special-key event
 	glutSpecialFunc(specialKeys); // Register callback handler for special-key event
 
 	glutMainLoop();
-
-	clearAlloc();
 
 }
