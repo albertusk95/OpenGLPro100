@@ -60,6 +60,7 @@ GLfloat sqBouncerPosX = 0.0f, sqBouncerPosY = 0.0f;
 //GLfloat ballXMin, ballXMax, ballYMin, ballYMax;
 GLfloat circleMinPosX, circleMaxPosX, circleMinPosY, circleMaxPosY;
 GLfloat squareMinPosX, squareMaxPosX, squareMinPosY, squareMaxPosY;
+GLfloat octagonMinPosX, octagonMaxPosX, octagonMinPosY, octagonMaxPosY;
 
 // Current rotational angle of the shapes
 GLfloat angle = 0.0f;  
@@ -92,7 +93,8 @@ public:
 
 	void setObjColor() {
 		int tmpR = 0, tmpG = 0, tmpB = 0;
-		srand(time(0));
+		
+		srand((unsigned int)time(NULL));
 		while (((float)tmpR == 0.0f && (float)tmpG == 0.0f && (float)tmpB == 0.0f) || ((float)tmpR == 1.0f && (float)tmpG == 1.0f && (float)tmpB == 1.0f)) {
 			tmpR = rand() % 2;         // tmpR in the range 0 to 1
 			tmpG = rand() % 2;         // tmpG in the range 0 to 1
@@ -132,7 +134,8 @@ public:
 
 	void setObjColor() {
 		int tmpR = 0, tmpG = 0, tmpB = 0;
-		srand(time(0));
+		
+		srand((unsigned int)time(NULL));
 		while (((float)tmpR == 0.0f && (float)tmpG == 0.0f && (float)tmpB == 0.0f) || ((float)tmpR == 1.0f && (float)tmpG == 1.0f && (float)tmpB == 1.0f)) {
 			tmpR = rand() % 2;         // tmpR in the range 0 to 1
 			tmpG = rand() % 2;         // tmpG in the range 0 to 1
@@ -143,6 +146,47 @@ public:
 		B = (float)tmpB;
 	}
 };
+
+/*
+	Class: Octagon
+	Membentuk objek berupa segi delapan yang memiliki atribut berupa
+	posisi awal objek (x, y) dan kecepatan gerak berdasarkan sumbu x (vx) dan sumbu y (vy)
+*/
+class Octagon {
+
+public:
+
+	GLfloat R = 0.0f, G = 0.0f, B = 0.0f;
+	double x, vx, y, vy;
+
+	Octagon(double x, double vx, double y, double vy) : x(x), vx(vx), y(y), vy(vy) {}
+
+	void step(double dt) {
+		x += vx * dt;
+		y += vy * dt;
+		vx = vx;
+		vy -= g * dt;
+
+		if (x > octagonMaxPosX) vx = -abs(vx);
+		if (x < octagonMinPosX) vx = abs(vx);
+		if (y < octagonMinPosY) vy = abs(vy);
+	}
+
+	void setObjColor() {
+		int tmpR = 0, tmpG = 0, tmpB = 0;
+		
+		srand((unsigned int)time(NULL));
+		while (((float)tmpR == 0.0f && (float)tmpG == 0.0f && (float)tmpB == 0.0f) || ((float)tmpR == 1.0f && (float)tmpG == 1.0f && (float)tmpB == 1.0f)) {
+			tmpR = rand() % 2;         // tmpR in the range 0 to 1
+			tmpG = rand() % 2;         // tmpG in the range 0 to 1
+			tmpB = rand() % 2;         // tmpB in the range 0 to 1
+		}
+		R = (float)tmpR;
+		G = (float)tmpG;
+		B = (float)tmpB;
+	}
+};
+
 
 void getUserInput() {
 	cout << "OpenGLPro100" << endl;
@@ -329,13 +373,69 @@ void setUserSquare(int idx) {
 	}
 
 	if (((float)squares[idx]->R == 0.0f && (float)squares[idx]->G == 0.0f && (float)squares[idx]->B == 0.0f) || ((float)squares[idx]->R == 1.0f && (float)squares[idx]->G == 1.0f && (float)squares[idx]->B == 1.0f)) {
-		cout << "Kode tidak valid. Set kode R, G, dan B untuk circle " << idx << " dengan default: 0.5, 0.5, 0.5" << endl;
+		cout << "Kode tidak valid. Set kode R, G, dan B untuk square " << idx << " dengan default: 0.5, 0.5, 0.5" << endl;
 		squares[idx]->R = 0.5f;
 		squares[idx]->G = 0.5f;
 		squares[idx]->B = 0.5f;
 	}
 }
 
+/*
+Prosedur membentuk objek segi delapan
+*/
+Octagon **octagons;
+
+void setUserOctagon(int idx);
+
+void create_octagon() {
+	double alpha;
+
+	if (numOctagon > 0) {
+		octagons = new Octagon*[numOctagon];
+		if (fillColorOctagon == 1) {
+			cout << "[Penentuan warna objek segi delapan]" << endl;
+			cout << "Masukkan kode warna R, G, dan B dari 0 sampai dengan 1" << endl;
+			cout << "Invalid code: < 0, > 1, R=G=B=0, dan R=G=B=1" << endl;
+		}
+		for (int i = 0; i < numOctagon; i++) {
+			alpha = pi * rand() / double(RAND_MAX);
+			octagons[i] = new Octagon(0, v_max * cos(alpha), 0, v_max * sin(alpha));
+			// user memasukkan kode warna RGB jika memilih untuk menentukan warna sendiri
+			if (fillColorOctagon == 1) {
+				setUserOctagon(i);
+			}
+		}
+	}
+}
+
+void setUserOctagon(int idx) {
+	cout << "[Octagon " << idx << "]" << endl;
+	cout << "R: ";
+	cin >> octagons[idx]->R;
+	if (octagons[idx]->R < 0 || octagons[idx]->R > 1) {
+		cout << "Kode tidak valid. Set kode R dengan nilai default: 0.5" << endl;
+		octagons[idx]->R = 0.5f;
+	}
+	cout << "G: ";
+	cin >> octagons[idx]->G;
+	if (octagons[idx]->G < 0 || octagons[idx]->G > 1) {
+		cout << "Kode tidak valid. Set kode G dengan nilai default: 0.5" << endl;
+		octagons[idx]->G = 0.5f;
+	}
+	cout << "B: ";
+	cin >> octagons[idx]->B;
+	if (octagons[idx]->B < 0 || octagons[idx]->B > 1) {
+		cout << "Kode tidak valid. Set kode B dengan nilai default: 0.5" << endl;
+		octagons[idx]->B = 0.5f;
+	}
+
+	if (((float)octagons[idx]->R == 0.0f && (float)octagons[idx]->G == 0.0f && (float)octagons[idx]->B == 0.0f) || ((float)octagons[idx]->R == 1.0f && (float)octagons[idx]->G == 1.0f && (float)octagons[idx]->B == 1.0f)) {
+		cout << "Kode tidak valid. Set kode R, G, dan B untuk octagon " << idx << " dengan default: 0.5, 0.5, 0.5" << endl;
+		octagons[idx]->R = 0.5f;
+		octagons[idx]->G = 0.5f;
+		octagons[idx]->B = 0.5f;
+	}
+}
 
 // move each object by one time step dt
 void step() {
@@ -346,6 +446,10 @@ void step() {
 	// square
 	for (int i = 0; i < numSquare; i++) {
 		squares[i]->step(dt);
+	}
+	// octagon
+	for (int i = 0; i < numOctagon; i++) {
+		octagons[i]->step(dt);
 	}
 	t += dt;
 	++step_number;
@@ -497,7 +601,7 @@ void display() {
 	}
 	glPopMatrix();
 
-	// membentuk objek numSquare kotak
+	// membentuk objek numSquare buah kotak
 	glPushMatrix();
 	for (int i = 0; i < numSquare; i++) {
 		//glRotatef(angle, 1.0f, 1.0f, 0.0f); // rotate by angle in degrees
@@ -518,6 +622,42 @@ void display() {
 	}
 	glPopMatrix();
 	
+	// membentuk objek numOctagon buah segi delapan
+	glPushMatrix();
+	for (int i = 0; i < numOctagon; i++) {
+		glTranslatef(octagons[i]->x, octagons[i]->y, 0.0f);
+		glBegin(GL_POLYGON);
+			// memilih warna objek
+			if (fillColorOctagon == 0) {
+				if (octagons[i]->R == 0.0f && octagons[i]->G == 0.0f && octagons[i]->B == 0.0f) {
+					octagons[i]->setObjColor();
+				}
+			}
+			glColor3f(octagons[i]->R, octagons[i]->G, octagons[i]->B);
+			glVertex2f(-0.2f, -0.2f);
+			glVertex2f(-0.25f, -0.1f);
+			glVertex2f(-0.2f, 0.0f);
+			glVertex2f(-0.1f, 0.05f);
+			glVertex2f(0.0f, 0.0f);
+			glVertex2f(0.05f, -0.1f);
+			glVertex2f(0.0f, -0.2f);
+			glVertex2f(-0.1f, -0.25f);
+		glEnd();
+	}
+	glPopMatrix();
+
+
+	// 0.05^2 + 0.1^2 = 1/400 + 1/100 = sqrt(5/400) = sqrt(5)/20 
+	// sqrt(5)/20 = 2x^2 - 2x^2cos45 
+	// sqrt(5)/20 = 2x^2 - x^2sqrt(2) = x^2 (2 - sqrt(2))
+	// x^2 = (sqrt(5/400)) / (2-sqrt(2))
+	// x^2 = (sqrt(5/400)) / 0.59 = 0.19
+	// x = sqrt(0.19) = 0.435
+
+	// 0.44^2 - 5/1600 = 0.189 - 5/1600 = 0.186
+	// sqrt(0.186) = 0.431
+
+
 	/*
 		Objek yang dibuat oleh aplikasi saat dijalankan (bukan dari user)
 	*/
@@ -595,11 +735,20 @@ void reshape(int w, int h) {
 		circleMaxPosY = clipAreaYTop - 0.1f;
 	}
 	if (numSquare > 0) {
-		squareMinPosX = clipAreaXLeft + 0.2f;
-		squareMaxPosX = clipAreaXRight - 0.2f;
-		squareMinPosY = clipAreaYBottom + 0.2f;
-		squareMaxPosY = clipAreaYTop - 0.2f;
+		squareMinPosX = clipAreaXLeft + 0.1f;
+		squareMaxPosX = clipAreaXRight - 0.1f;
+		squareMinPosY = clipAreaYBottom + 0.1f;
+		squareMaxPosY = clipAreaYTop - 0.1f;
 	}
+	if (numOctagon > 0) {
+		octagonMinPosX = clipAreaXLeft + 0.431f;
+		octagonMaxPosX = clipAreaXRight - 0.431f;
+		octagonMinPosY = clipAreaYBottom + 0.431f;
+		octagonMaxPosY = clipAreaYTop - 0.431f;
+	}
+
+	
+
 
 	//gluOrtho2D(-L, L, 0, L / w*(2.0*h));
 	glMatrixMode(GL_MODELVIEW);
@@ -656,19 +805,25 @@ void specialKeys(int key, int x, int y) {
 void clearAlloc() {
 
 	// deallocate circle's object allocation
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < numCircle; i++) {
 		delete[] circles[i];
 	}
 	delete[] circles;
 	cout << "clear alloc for circle done" << endl;
 
-
 	// deallocate square's object allocation
-	for (int i = 0; i < 1; i++) {
+	for (int i = 0; i < numSquare; i++) {
 		delete[] squares[i];
 	}
 	delete[] squares;
 	cout << "clear alloc for square done" << endl;
+
+	// deallocate octagon's object allocation
+	for (int i = 0; i < numOctagon; i++) {
+		delete[] octagons[i];
+	}
+	delete[] octagons;
+	cout << "clear alloc for octagon done" << endl;
 }
 
 int main(int argc, char *argv[]) {
@@ -679,6 +834,7 @@ int main(int argc, char *argv[]) {
 
 	create_circle();	// lingkaran
 	create_square();	// kotak
+	create_octagon();	// segi delapan
 
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 
