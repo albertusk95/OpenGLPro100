@@ -20,12 +20,12 @@ const double g = 9.8;
 bool fullScreenMode = true;
 
 // variabel yang menyimpan nilai panjang dan lebar window
-int windowWidth = 640;
-int windowHeight = 480;
+int windowWidth = 880;
+int windowHeight = 660;
 
 // variabel yang menyimpan nilai posisi titik ujung kiri atas saat aplikasi pertama kali dijalankan
-int windowPosX = 50;
-int windowPosY = 50;
+int windowPosX = 100;
+int windowPosY = 150;
 
 // variabel yang menyimpan jumlah masing-masing objek yang dibentuk
 int numSquare, numCircle, numOctagon;
@@ -72,5 +72,9 @@ GLfloat angle = 0.0f;
 // jari-jari lingkaran
 GLfloat circleRadius = 0.1f;
 
+// nilai setengah panjang sisi kotak 
+GLfloat squareRadius = 0.1f;
 
-
+// digunakan untuk menentukan posisi bagian kiri, kanan, atas, dan bawah dari window
+GLfloat clipAreaXLeft, clipAreaXRight;
+GLfloat clipAreaYBottom, clipAreaYTop;

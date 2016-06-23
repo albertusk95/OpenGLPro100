@@ -60,13 +60,13 @@ int main(int argc, char *argv[]) {
 	}
 
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-
-	glutInitWindowSize(880, 660);
-
-	glutInitWindowPosition(100, 120);
+	glutInitWindowSize(windowWidth, windowHeight);
+	glutInitWindowPosition(windowPosX, windowPosY);
 	glutCreateWindow("OpenGLPro100");
+
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glShadeModel(GL_FLAT);
+	
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
 	glutMouseFunc(mouse);
@@ -100,9 +100,11 @@ void clearAlloc() {
 	delete[] octagons;
 	cout << "clear alloc for octagon done" << endl;
 
-	char aaa;
-	cout << "aaa: ";
-	cin >> aaa;
+	cout << endl;
+
+	char freeKey;
+	cout << "Press ANY KEY then ENTER to exit..." << endl;
+	cin >> freeKey;
 }
 
 void display() {
@@ -150,10 +152,10 @@ void display() {
 		glVertex2f(-0.2f, 0.2f);
 		*/
 
-		glVertex2f((float)squares[i]->x - 0.1f, (float)squares[i]->y - 0.1f);
-		glVertex2f((float)squares[i]->x + 0.1f, (float)squares[i]->y - 0.1f);
-		glVertex2f((float)squares[i]->x + 0.1f, (float)squares[i]->y + 0.1f);
-		glVertex2f((float)squares[i]->x - 0.1f, (float)squares[i]->y + 0.1f);
+		glVertex2f((float)squares[i]->x - squareRadius, (float)squares[i]->y - squareRadius);
+		glVertex2f((float)squares[i]->x + squareRadius, (float)squares[i]->y - squareRadius);
+		glVertex2f((float)squares[i]->x + squareRadius, (float)squares[i]->y + squareRadius);
+		glVertex2f((float)squares[i]->x - squareRadius, (float)squares[i]->y + squareRadius);
 
 		glEnd();
 	}
@@ -291,14 +293,30 @@ void display() {
 
 	// membentuk teks sebelum permainan berjalan
 	if (isStart == 0) {
-		string txt_intro0 = "Klik di sembarang tempat untuk memulai permainan.";
-		string txt_intro1 = "Anda menang jika dapat mencapai total poin sebesar";
+		string txt_intro0 = "Anda diberikan total waktu 12 detik.";
+		string txt_intro1 = "Anda menang jika total poin lebih besar atau sama dengan";
 		string txt_intro2 = to_string(totalPoint);
+		string txt_intro3 = "Tombol LEFT ARROW untuk menggerakkan kotak pemantul ke kiri";
+		string txt_intro4 = "Tombol RIGHT ARROW untuk menggerakkan kotak pemantul ke kanan";
+		string txt_intro5 = "Tombol Page Up untuk menambah besar lingkaran dan kotak";
+		string txt_intro6 = "Tombol Page Down untuk mengurangi besar lingkaran dan kotak";
+		string txt_intro7 = "Tombol F1 untuk ganti fullscreen / windowed";
+		string txt_intro8 = "Tombol ESC untuk keluar";
+		string txt_intro9 = "Klik mouse untuk pause dan resume";
+		string txt_intro10 = "Klik pada sembarang tempat untuk mulai";
 		glPushMatrix();
 		glColor3f(1.0f, 1.0f, 1.0f);
-		drawText(txt_intro0.data(), txt_intro0.size(), -0.57, 0.75, "GLUT_BITMAP_HELVETICA_18");
-		drawText(txt_intro1.data(), txt_intro1.size(), -0.58, 0.6, "GLUT_BITMAP_HELVETICA_18");
-		drawText(txt_intro2.data(), txt_intro2.size(), 0.0, 0.45, "GLUT_BITMAP_TIMES_ROMAN_24");
+		drawText(txt_intro0.data(), txt_intro0.size(), -0.4, 0.8, "GLUT_BITMAP_HELVETICA_18");
+		drawText(txt_intro1.data(), txt_intro1.size(), -0.68, 0.74, "GLUT_BITMAP_HELVETICA_18");
+		drawText(txt_intro2.data(), txt_intro2.size(), 0.0, 0.68, "GLUT_BITMAP_TIMES_ROMAN_24");
+		drawText(txt_intro3.data(), txt_intro3.size(), -0.58, 0.62, "GLUT_BITMAP_HELVETICA_12");
+		drawText(txt_intro4.data(), txt_intro4.size(), -0.58, 0.56, "GLUT_BITMAP_HELVETICA_12");
+		drawText(txt_intro5.data(), txt_intro5.size(), -0.58, 0.50, "GLUT_BITMAP_HELVETICA_12");
+		drawText(txt_intro6.data(), txt_intro6.size(), -0.58, 0.44, "GLUT_BITMAP_HELVETICA_12");
+		drawText(txt_intro7.data(), txt_intro7.size(), -0.58, 0.38, "GLUT_BITMAP_HELVETICA_12");
+		drawText(txt_intro8.data(), txt_intro8.size(), -0.58, 0.32, "GLUT_BITMAP_HELVETICA_12");
+		drawText(txt_intro9.data(), txt_intro9.size(), -0.58, 0.26, "GLUT_BITMAP_HELVETICA_12");
+		drawText(txt_intro10.data(), txt_intro10.size(), -0.58, 0.20, "GLUT_BITMAP_HELVETICA_18");
 		glPopMatrix();
 	}
 
@@ -335,7 +353,7 @@ void display() {
 
 		glPushMatrix();
 		txt_finalpoint = to_string(currentPoint);
-		if (currentPoint > 0) {
+		if (currentPoint >= totalPoint) {
 			txt_finalres = "YOU WIN";
 		}
 		else {
@@ -361,9 +379,7 @@ void display() {
 }
 
 void reshape(int w, int h) {
-	GLfloat clipAreaXLeft, clipAreaXRight;
-	GLfloat clipAreaYBottom, clipAreaYTop;
-
+	
 	GLfloat aspect = (GLfloat)w / (GLfloat)h;
 
 	glViewport(0, 0, w, h);
@@ -391,10 +407,10 @@ void reshape(int w, int h) {
 		circleMaxPosY = clipAreaYTop - circleRadius;
 	}
 	if (numSquare > 0) {
-		squareMinPosX = clipAreaXLeft + 0.1f;
-		squareMaxPosX = clipAreaXRight - 0.1f;
-		squareMinPosY = clipAreaYBottom + 0.1f;
-		squareMaxPosY = clipAreaYTop - 0.1f;
+		squareMinPosX = clipAreaXLeft + squareRadius;
+		squareMaxPosX = clipAreaXRight - squareRadius;
+		squareMinPosY = clipAreaYBottom + squareRadius;
+		squareMaxPosY = clipAreaYTop - squareRadius;
 	}
 	if (numOctagon > 0) {
 		octagonMinPosX = clipAreaXLeft + 0.14f;
@@ -439,25 +455,59 @@ void mouse(int button, int state, int x, int y) {
 
 void specialKeys(int key, int x, int y) {
 	switch (key) {
-	case GLUT_KEY_F1:    // F1: Toggle between full-screen and windowed mode
+	case GLUT_KEY_F1:    // F1: antara full-screen atau windowed size
 		fullScreenMode = !fullScreenMode;         // Toggle state
-		if (fullScreenMode) {                     // Full-screen mode
-			windowPosX = glutGet(GLUT_WINDOW_X); // Save parameters for restoring later
+		if (fullScreenMode) {                     // Full-screen 
+			windowPosX = glutGet(GLUT_WINDOW_X);  // Save parameters for restoring later
 			windowPosY = glutGet(GLUT_WINDOW_Y);
 			windowWidth = glutGet(GLUT_WINDOW_WIDTH);
 			windowHeight = glutGet(GLUT_WINDOW_HEIGHT);
-			glutFullScreen();                      // Switch into full screen
+			glutFullScreen();                     // Switch into full screen
 		}
-		else {                                         // Windowed mode
+		else {                                            // Windowed 
 			glutReshapeWindow(windowWidth, windowHeight); // Switch into windowed mode
 			glutPositionWindow(windowPosX, windowPosX);   // Position top-left corner
 		}
 		break;
-	case GLUT_KEY_RIGHT:    // Right: increase x speed
+
+	case GLUT_KEY_RIGHT:    // Right arrow key: menggerakkan kotak pemantul ke kanan
 		sqBouncerPosX = sqBouncerPosX + 0.05f;
 		break;
-	case GLUT_KEY_LEFT:     // Left: decrease x speed
+	case GLUT_KEY_LEFT:     // Left arrow key: menggerakkan kotak pemantul ke kiri
 		sqBouncerPosX = sqBouncerPosX - 0.05f;
+		break;
+
+	case GLUT_KEY_PAGE_UP:  // Page-Up: menambah besar objek
+		if (numCircle > 0) {
+			circleRadius *= 1.05f;
+			circleMinPosX = clipAreaXLeft + circleRadius;
+			circleMaxPosX = clipAreaXRight - circleRadius;
+			circleMinPosY = clipAreaYBottom + circleRadius;
+			circleMaxPosY = clipAreaYTop - circleRadius;
+		}
+		if (numSquare > 0) {
+			squareRadius *= 1.05f;
+			squareMinPosX = clipAreaXLeft + squareRadius;
+			squareMaxPosX = clipAreaXRight - squareRadius;
+			squareMinPosY = clipAreaYBottom + squareRadius;
+			squareMaxPosY = clipAreaYTop - squareRadius;
+		}
+		break;
+	case GLUT_KEY_PAGE_DOWN: // Page-Down: mengurangi besar objek
+		if (numCircle > 0) {
+			circleRadius *= 0.95f;
+			circleMinPosX = clipAreaXLeft + circleRadius;
+			circleMaxPosX = clipAreaXRight - circleRadius;
+			circleMinPosY = clipAreaYBottom + circleRadius;
+			circleMaxPosY = clipAreaYTop - circleRadius;
+		}
+		if (numSquare > 0) {
+			squareRadius *= 0.95f;
+			squareMinPosX = clipAreaXLeft + squareRadius;
+			squareMaxPosX = clipAreaXRight - squareRadius;
+			squareMinPosY = clipAreaYBottom + squareRadius;
+			squareMaxPosY = clipAreaYTop - squareRadius;
+		}
 		break;
 
 	}

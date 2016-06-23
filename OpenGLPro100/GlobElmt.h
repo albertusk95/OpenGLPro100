@@ -76,4 +76,11 @@ extern GLfloat angle;
 // jari-jari lingkaran
 extern GLfloat circleRadius;
 
+// nilai setengah panjang sisi kotak 
+extern GLfloat squareRadius;
+
+// digunakan untuk menentukan posisi bagian kiri, kanan, atas, dan bawah dari window
+extern GLfloat clipAreaXLeft, clipAreaXRight;
+extern GLfloat clipAreaYBottom, clipAreaYTop;
+
 #endif

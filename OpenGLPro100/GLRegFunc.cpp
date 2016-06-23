@@ -11,6 +11,9 @@ void drawText(const char *str, int len_str, double x, double y, string GLUT_BITM
 		if (GLUT_BITMAP_TYPE == "GLUT_BITMAP_TIMES_ROMAN_24") {
 			glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, (int)str[i]);
 		}
+		else if (GLUT_BITMAP_TYPE == "GLUT_BITMAP_HELVETICA_12") {
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, (int)str[i]);
+		}
 		else {
 			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, (int)str[i]);
 		}

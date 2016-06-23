@@ -129,7 +129,7 @@ void checkCollisionAct() {
 
 	// cek tumbukan antara square dengan kotak pemantul (bouncer)
 	for (int i = 0; i < numSquare; i++) {
-		if (sqrt(pow(squares[i]->x - sqBouncerPosX, 2) + pow(squares[i]->y + 1.0, 2)) <= sqrt(pow(0.5, 2) + pow(0.1, 2))) {
+		if (sqrt(pow(squares[i]->x - sqBouncerPosX, 2) + pow(squares[i]->y + 1.0, 2)) <= sqrt(pow(0.5, 2) + pow(squareRadius, 2))) {
 			currentPoint = currentPoint + 3;
 			// jika pantulan terjadi di bagian atas sisi kiri
 			if (squares[i]->x < sqBouncerPosX) {
@@ -152,7 +152,7 @@ void checkCollisionAct() {
 		// jika square berada dalam lingkup garis tengah berdasarkan sumbu x
 		if (squares[i]->x > sqGatePosX0 - 0.325 && squares[i]->x < sqGatePosX0 + 0.325) {
 			// jika square berada dalam posisi dekat dengan garis tengah dilihat dari sumbu y
-			if (abs(squares[i]->y - sqGatePosY0) <= 0.1) {
+			if (abs(squares[i]->y - sqGatePosY0) <= squareRadius) {
 				// square bertumbukan dengan garis tengah bagian kiri
 				if (squares[i]->x < sqGatePosX0 && squares[i]->y < sqGatePosY0) {
 					squares[i]->vx = -abs(squares[i]->vx);
@@ -179,7 +179,7 @@ void checkCollisionAct() {
 		// jika square berada dalam lingkup garis tengah berdasarkan sumbu x
 		if (squares[i]->x > sqGatePosX1 - 0.325 && squares[i]->x < sqGatePosX1 + 0.325) {
 			// jika square berada dalam posisi dekat dengan garis tengah dilihat dari sumbu y
-			if (abs(squares[i]->y - sqGatePosY1) <= 0.1) {
+			if (abs(squares[i]->y - sqGatePosY1) <= squareRadius) {
 				// square bertumbukan dengan garis tengah bagian kanan
 				if (squares[i]->x < sqGatePosX1 && squares[i]->y < sqGatePosY1) {
 					squares[i]->vx = -abs(squares[i]->vx);
@@ -204,7 +204,7 @@ void checkCollisionAct() {
 	// cek tumbukan antara square dengan octagon
 	for (int i = 0; i < numSquare; i++) {
 		for (int j = 0; j < numOctagon; j++) {
-			if (sqrt(pow(squares[i]->x - octagons[j]->x, 2) + pow(squares[i]->y - octagons[j]->y, 2)) <= (0.1*sqrt(2)) + 0.15) {
+			if (sqrt(pow(squares[i]->x - octagons[j]->x, 2) + pow(squares[i]->y - octagons[j]->y, 2)) <= (squareRadius*sqrt(2)) + 0.15) {
 				if (squares[i]->x < octagons[j]->x && squares[i]->y < octagons[j]->y) {
 					squares[i]->vx = -abs(squares[i]->vx);
 					squares[i]->vy = -abs(squares[i]->vy);
@@ -237,7 +237,7 @@ void checkCollisionAct() {
 	for (int i = 0; i < numSquare; i++) {
 		for (int j = 0; j < numSquare; j++) {
 			if (j != i) {
-				if (sqrt(pow(squares[i]->x - squares[j]->x, 2) + pow(squares[i]->y - squares[j]->y, 2)) <= 2 * 0.1) {
+				if (sqrt(pow(squares[i]->x - squares[j]->x, 2) + pow(squares[i]->y - squares[j]->y, 2)) <= 2 * squareRadius) {
 					if (squares[i]->x < squares[j]->x && squares[i]->y < squares[j]->y) {
 						squares[i]->vx = -abs(squares[i]->vx);
 						squares[i]->vy = -abs(squares[i]->vy);
@@ -350,7 +350,7 @@ void checkCollisionAct() {
 	// cek tumbukan antara circle dengan kotak
 	for (int i = 0; i < numCircle; i++) {
 		for (int j = 0; j < numSquare; j++) {
-			if (sqrt(pow(circles[i]->x - squares[j]->x, 2) + pow(circles[i]->y - squares[j]->y, 2)) <= (0.1*sqrt(2)) + circleRadius) {
+			if (sqrt(pow(circles[i]->x - squares[j]->x, 2) + pow(circles[i]->y - squares[j]->y, 2)) <= (squareRadius*sqrt(2)) + circleRadius) {
 				if (circles[i]->x < squares[j]->x && circles[i]->y > squares[j]->y) {
 					circles[i]->vx = -abs(circles[i]->vx);
 					circles[i]->vy = abs(circles[i]->vy);
