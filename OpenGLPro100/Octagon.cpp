@@ -1,31 +1,31 @@
 /*
-	Class: Square	
+	Class: Octagon
 	Header implementation
 */
 
-#include "Square.h"
+#include "Octagon.h"
 
-	Square::Square(double x, double vx, double y, double vy) : x(x), vx(vx), y(y), vy(vy) {}
+	Octagon::Octagon(double x, double vx, double y, double vy) : x(x), vx(vx), y(y), vy(vy) {}
 
-	void Square::step(double dt) {
+	void Octagon::step(double dt) {
 		x += vx * dt;
 		y += vy * dt;
 		vx = vx;
 		vy -= g * dt;
 
-		if (x > squareMaxPosX) {
+		if (x > octagonMaxPosX) {
 			vx = -abs(vx);
 		}
-		if (x < squareMinPosX) {
+		if (x < octagonMinPosX) {
 			vx = abs(vx);
 		}
-		if (y < squareMinPosY) {
+		if (y < octagonMinPosY) {
 			vy = abs(vy);
 			currentPoint--;
 		}
 	}
 
-	void Square::setObjColor() {
+	void Octagon::setObjColor() {
 		int tmpR = 0, tmpG = 0, tmpB = 0;
 
 		srand((unsigned int)time(NULL));

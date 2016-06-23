@@ -1,31 +1,31 @@
 /*
-	Class: Square	
+	Class: Circle
 	Header implementation
 */
 
-#include "Square.h"
+#include "Circle.h"
 
-	Square::Square(double x, double vx, double y, double vy) : x(x), vx(vx), y(y), vy(vy) {}
+	Circle::Circle(double x, double vx, double y, double vy) : x(x), vx(vx), y(y), vy(vy) {}
 
-	void Square::step(double dt) {
+	void Circle::step(double dt) {
 		x += vx * dt;
 		y += vy * dt;
 		vx = vx;
 		vy -= g * dt;
 
-		if (x > squareMaxPosX) {
+		if (x > circleMaxPosX) {
 			vx = -abs(vx);
 		}
-		if (x < squareMinPosX) {
+		if (x < circleMinPosX) {
 			vx = abs(vx);
 		}
-		if (y < squareMinPosY) {
+		if (y < circleMinPosY) {
 			vy = abs(vy);
 			currentPoint--;
 		}
 	}
 
-	void Square::setObjColor() {
+	void Circle::setObjColor() {
 		int tmpR = 0, tmpG = 0, tmpB = 0;
 
 		srand((unsigned int)time(NULL));
@@ -38,3 +38,4 @@
 		G = (float)tmpG;
 		B = (float)tmpB;
 	}
+

@@ -67,7 +67,28 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="square.cpp" />
+    <ClCompile Include="Animation.cpp" />
+    <ClCompile Include="Circle.cpp" />
+    <ClCompile Include="GlobElmt.cpp" />
+    <ClCompile Include="GlobObj.cpp" />
+    <ClCompile Include="GLRegFunc.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="ObjectCreation.cpp" />
+    <ClCompile Include="Octagon.cpp" />
+    <ClCompile Include="Square.cpp" />
+    <ClCompile Include="UserInteract.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Animation.h" />
+    <ClInclude Include="Circle.h" />
+    <ClInclude Include="GlobElmt.h" />
+    <ClInclude Include="GlobObj.h" />
+    <ClInclude Include="GLRegFunc.h" />
+    <ClInclude Include="LibraryInc.h" />
+    <ClInclude Include="ObjectCreation.h" />
+    <ClInclude Include="Octagon.h" />
+    <ClInclude Include="Square.h" />
+    <ClInclude Include="UserInteract.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
