@@ -54,8 +54,9 @@ int step_number;      // time step number
 // variabel permainan
 int isStart = 0;
 int totalPoint = 0;
+int currentPoint = 0;		// poin yang ditampilkan
 int displayFinalState = 0;
-float deltaTime = 5.00;
+float deltaTime = 12.00;
 
 // variabel yang menyimpan apakah user ingin warna objek ditentukan sendiri atau random
 int fillColorSquare, fillColorCircle, fillColorOctagon, fillColorLine;
@@ -101,9 +102,16 @@ public:
 		vx = vx;
 		vy -= g * dt;
 
-		if (x > circleMaxPosX) vx = -abs(vx);
-		if (x < circleMinPosX) vx = abs(vx);
-		if (y < circleMinPosY) vy = abs(vy);
+		if (x > circleMaxPosX) {
+			vx = -abs(vx);
+		}
+		if (x < circleMinPosX) {
+			vx = abs(vx);
+		}
+		if (y < circleMinPosY) {
+			vy = abs(vy); 
+			currentPoint--;
+		}
 	}
 
 	void setObjColor() {
@@ -142,9 +150,16 @@ public:
 		vx = vx;
 		vy -= g * dt;
 
-		if (x > squareMaxPosX) vx = -abs(vx);
-		if (x < squareMinPosX) vx = abs(vx);
-		if (y < squareMinPosY) vy = abs(vy);
+		if (x > squareMaxPosX) {
+			vx = -abs(vx);
+		}
+		if (x < squareMinPosX) {
+			vx = abs(vx);
+		}
+		if (y < squareMinPosY) {
+			vy = abs(vy); 
+			currentPoint--;
+		}
 	}
 
 	void setObjColor() {
@@ -182,9 +197,16 @@ public:
 		vx = vx;
 		vy -= g * dt;
 
-		if (x > octagonMaxPosX) vx = -abs(vx);
-		if (x < octagonMinPosX) vx = abs(vx);
-		if (y < octagonMinPosY) vy = abs(vy);
+		if (x > octagonMaxPosX) {
+			vx = -abs(vx);
+		}
+		if (x < octagonMinPosX) {
+			vx = abs(vx);
+		}
+		if (y < octagonMinPosY) {
+			vy = abs(vy); 
+			currentPoint--;
+		}
 	}
 
 	void setObjColor() {
@@ -440,16 +462,22 @@ void setUserOctagon(int idx) {
 // move each object by one time step dt
 void step() {
 	// circle
-	for (int i = 0; i < numCircle; i++) {
-		circles[i]->step(dt);
+	if (numCircle > 0) {
+		for (int i = 0; i < numCircle; i++) {
+			circles[i]->step(dt);
+		}
 	}
 	// square
-	for (int i = 0; i < numSquare; i++) {
-		squares[i]->step(dt);
+	if (numSquare > 0) {
+		for (int i = 0; i < numSquare; i++) {
+			squares[i]->step(dt);
+		}
 	}
 	// octagon
-	for (int i = 0; i < numOctagon; i++) {
-		octagons[i]->step(dt);
+	if (numOctagon > 0) {
+		for (int i = 0; i < numOctagon; i++) {
+			octagons[i]->step(dt);
+		}
 	}
 	t += dt;
 	++step_number;
@@ -468,6 +496,7 @@ void checkCollisionAct() {
 	// cek tumbukan antara octagon dengan kotak pemantul (bouncer)
 	for (int i = 0; i < numOctagon; i++) {
 		if (sqrt(pow(octagons[i]->x - sqBouncerPosX, 2) + pow(octagons[i]->y + 1.0, 2)) <= sqrt(pow(0.5, 2) + pow(0.15, 2))) {
+			currentPoint = currentPoint + 3;
 			// jika pantulan terjadi di bagian atas sisi kiri
 			if (octagons[i]->x < sqBouncerPosX) {
 				octagons[i]->vx = -abs(octagons[i]->vx);
@@ -579,6 +608,7 @@ void checkCollisionAct() {
 	// cek tumbukan antara square dengan kotak pemantul (bouncer)
 	for (int i = 0; i < numSquare; i++) {
 		if (sqrt(pow(squares[i]->x - sqBouncerPosX, 2) + pow(squares[i]->y + 1.0, 2)) <= sqrt(pow(0.5, 2) + pow(0.1, 2))) {
+			currentPoint = currentPoint + 3;
 			// jika pantulan terjadi di bagian atas sisi kiri
 			if (squares[i]->x < sqBouncerPosX) {
 				squares[i]->vx = -abs(squares[i]->vx);
@@ -722,6 +752,7 @@ void checkCollisionAct() {
 	// cek tumbukan antara circle dengan kotak pemantul (bouncer)
 	for (int i = 0; i < numCircle; i++) {
 		if (sqrt(pow(circles[i]->x - sqBouncerPosX, 2) + pow(circles[i]->y + 1.0, 2)) <= sqrt(pow(0.5, 2) + pow(circleRadius, 2))) {
+			currentPoint = currentPoint + 3;
 			// jika pantulan terjadi di bagian atas sisi kiri
 			if (circles[i]->x < sqBouncerPosX) {
 				circles[i]->vx = -abs(circles[i]->vx);
@@ -1176,28 +1207,49 @@ void display() {
 		glPopMatrix();
 	}
 
-	// membentuk teks selama permainan berjalan
+	// membentuk teks selama permainan berjalan: point saat ini dan sisa waktu
 	if (deltaTime >= -0.02f) {
-		string txt_deltaTime;
-		string txt_titledT = "Time";
+		string txt_currentPoint, txt_titlecPoint = "Point"; // variabel teks milik point saat ini
+		string txt_deltaTime, txt_titledT = "Time"; // variabel teks milik sisa waktu
 		stringstream stream_deltaTime;
 		if (deltaTime <= 0.0f) {
 			deltaTime = 0.0f;
 		}
 		glPushMatrix();
+		
+		// bagian sisa waktu
 		stream_deltaTime << fixed << setprecision(2) << deltaTime;
 		txt_deltaTime = stream_deltaTime.str();
 		glColor3f(0.0f, 0.0f, 0.0f);
-		drawText(txt_titledT.data(), txt_titledT.size(), 0.92, 0.75, "GLUT_BITMAP_HELVETICA_18");
-		drawText(txt_deltaTime.data(), txt_deltaTime.size(), 0.9, 0.65, "GLUT_BITMAP_TIMES_ROMAN_24");
+		drawText(txt_titledT.data(), txt_titledT.size(), 0.93, 0.75, "GLUT_BITMAP_HELVETICA_18");
+		drawText(txt_deltaTime.data(), txt_deltaTime.size(), 0.91, 0.65, "GLUT_BITMAP_TIMES_ROMAN_24");
+		
+		// bagian poin saat ini
+		txt_currentPoint = to_string(currentPoint);
+		glColor3f(0.0f, 0.0f, 0.0f);
+		drawText(txt_titlecPoint.data(), txt_titlecPoint.size(), -1.09, 0.75, "GLUT_BITMAP_HELVETICA_18");
+		drawText(txt_currentPoint.data(), txt_currentPoint.size(), -1.03, 0.65, "GLUT_BITMAP_TIMES_ROMAN_24");
+
 		glPopMatrix();
 	}
 
 	// final state check
 	if (deltaTime <= 0.0f) {
-		string txt = "FINAL RESULT";
+		string txt_finalpoint;
+		string txt_finalres;
+		
+		glPushMatrix();
+		txt_finalpoint = to_string(currentPoint);
+		if (currentPoint > 0) {
+			txt_finalres = "YOU WIN";
+		}
+		else {
+			txt_finalres = "YOU LOSE";
+		}
 		glColor3f(1.0f, 1.0f, 1.0f);
-		drawText(txt.data(), txt.size(), -0.5, 0.5, "GLUT_BITMAP_TIMES_ROMAN_24");
+		drawText(txt_finalres.data(), txt_finalres.size(), -0.2, 0.5, "GLUT_BITMAP_TIMES_ROMAN_24");
+		drawText(txt_finalpoint.data(), txt_finalpoint.size(), -0.07, 0.25, "GLUT_BITMAP_TIMES_ROMAN_24");
+		glPopMatrix();
 		deltaTime = 0.0f;
 		if (displayFinalState == 1) {
 			clearAlloc();
